@@ -1,7 +1,7 @@
 # buglogs
 
 A searchable, markdown-first knowledge base of **publicly disclosed HackerOne
-bug-bounty reports** — for you, and for your AI agents.
+bug-bounty reports** for you, and for your AI agents.
 
 - Base data: the open [reddelexc/hackerone-reports](https://github.com/reddelexc/hackerone-reports) dataset.
 - **No HackerOne account. No API token.**
