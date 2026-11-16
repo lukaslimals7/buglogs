@@ -94,51 +94,29 @@ def _report_html(r: dict) -> str:
 <html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{e(r['title'])} — CVE-logs</title>
-<link rel="preconnect" href="https://api.fontshare.com">
-<link href="https://api.fontshare.com/v2/css?f[]=clash-display@400,500,600&display=swap" rel="stylesheet">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&family=Lora:ital,wght@0,400;0,500;1,400&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
-:root{{--ink:#eceae5;--muted:#a5a29a;--line:rgba(236,234,229,.22);--line-soft:rgba(236,234,229,.12);
---display:"Clash Display","Inter",sans-serif;--serif:"Lora",Georgia,serif;
---sans:"Inter",system-ui,sans-serif;--mono:"IBM Plex Mono",ui-monospace,monospace;
---pad:clamp(20px,4vw,56px)}}
-*{{box-sizing:border-box;margin:0;padding:0}}
-body{{background:#0a0a0a;color:var(--ink);font-family:var(--sans);font-size:15px;
-line-height:1.6;-webkit-font-smoothing:antialiased;min-height:100vh}}
-a{{color:inherit;text-decoration:none}}
-header{{display:flex;justify-content:space-between;align-items:center;gap:16px;
-padding:18px var(--pad);font-size:11px;letter-spacing:.18em;text-transform:uppercase;
-border-bottom:1px solid var(--line-soft)}}
-header .brand{{font-family:var(--display);font-weight:500;font-size:15px;letter-spacing:.06em}}
-header a{{opacity:.8}} header a:hover{{opacity:1}}
-main{{max-width:900px;margin:0 auto;padding:clamp(28px,6vh,64px) var(--pad) clamp(40px,6vh,80px)}}
-.kicker{{font-family:var(--mono);font-size:10.5px;letter-spacing:.22em;text-transform:uppercase;
-color:var(--muted);margin-bottom:14px}}
-h1{{font-family:var(--display);font-weight:500;font-size:clamp(28px,4.5vw,52px);
-line-height:1.05;letter-spacing:.01em;margin-bottom:18px;text-wrap:balance}}
-.meta{{color:var(--muted);font-size:13px;margin:0 0 6px}}
-.meta a{{border-bottom:1px solid var(--line)}}
-.link{{display:inline-block;margin:18px 0 26px;font-family:var(--mono);font-size:11px;
-letter-spacing:.18em;text-transform:uppercase;border-bottom:1px solid var(--line);
-padding-bottom:6px}}
-pre{{background:rgba(236,234,229,.04);border:1px solid var(--line-soft);padding:clamp(14px,2.4vh,22px);
-overflow:auto;white-space:pre-wrap;font-family:var(--mono);font-size:13px;line-height:1.65}}
-code{{font-family:var(--mono);font-size:13px}}
-.back{{display:inline-block;margin-bottom:22px;font-family:var(--mono);font-size:10.5px;
-letter-spacing:.2em;text-transform:uppercase;opacity:.75}}
-.back:hover{{opacity:1}}
+html{{background:#fcefcf}}
+body{{text-align:center;max-width:650px;margin:0 auto;padding:12px;
+font-family:Verdana,Geneva,"DejaVu Sans",sans-serif;font-size:14px;color:#000;background:#fcefcf}}
+h1{{font-family:"Times New Roman",Times,serif;font-size:26px;margin:14px 0 8px;text-align:left}}
+nav{{display:inline-flex;flex-wrap:wrap;gap:12px;padding:12px;justify-content:center;
+border-bottom:1.5px solid #000;margin-bottom:14px}}
+a{{color:#044c9f}} a:hover{{color:#000}}
+.box{{border:1px solid #000;padding:10px;margin:12px 0;text-align:left;background:#fff8e6}}
+pre{{text-align:left;background:#fff;border:1px solid #000;padding:10px;overflow:auto;
+white-space:pre-wrap;font-size:13px}}
+.meta{{text-align:left;font-size:13px;margin:4px 0}}
+.back{{display:inline-block;margin-bottom:12px}}
 </style></head><body>
-<header><a class="brand" href="/">CVE-logs</a><a href="/wiki/index.md">wiki</a></header>
-<main>
-<a class="back" href="/">&larr; search</a>
-<p class="kicker">Report #{r['id']} · {e(r.get('class_id') or '')}</p>
+<nav><a href="/">Search</a><a href="/wiki/index.md">Wiki</a></nav>
 <h1>{e(r['title'])}</h1>
+<p class="meta">Report #{r['id']} · {e(r.get('class_id') or '')}</p>
 <p class="meta">{' · '.join(bits)}</p>
 <p class="meta">Bounty: {f"${r['bounty']:,.0f}" if r.get('bounty') else '-'} ·
 Votes: {r['votes']:,}</p>
-<a class="link" href="{e(r['link'])}">{e(r['link'])} ↗</a>
+<p class="meta"><a href="{e(r['link'])}">{e(r['link'])} ↗</a></p>
 {body_html}
-</main></body></html>"""
+</body></html>"""
 
 
 class Handler(BaseHTTPRequestHandler):
