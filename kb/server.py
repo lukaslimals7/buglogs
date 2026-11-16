@@ -25,6 +25,7 @@ from .db import ROOT, connect
 PUBLIC = ROOT / "public"
 WIKI = ROOT / "wiki"
 DEFAULT_PORT = 8765
+ASSETS = PUBLIC / "assets"
 
 COLS = ("r.id, r.title, r.program, r.vuln_type, r.class_id, r.severity, r.severity_guess, "
         "r.bounty, r.votes, r.link, r.has_writeup, r.body, r.reporter, r.substate")
@@ -80,32 +81,64 @@ def _report_html(r: dict) -> str:
     e = html.escape
     bits = []
     if r.get("program"):
-        bits.append(f'<a href="/?q=&program={urllib.parse.quote(r["program"])}">{e(r["program"])}</a>')
+        bits.append(f'<a href="/?program={urllib.parse.quote(r["program"])}">{e(r["program"])}</a>')
     if r.get("vuln_type"):
         bits.append(e(r["vuln_type"]))
     if r.get("severity") or r.get("severity_guess"):
         bits.append(e(r.get("severity") or r["severity_guess"]))
     body = r.get("body")
-    body_html = f"<pre>{e(body)}</pre>" if body else "<p><em>No write-up stored. "
-    if not body:
-        body_html += 'Run <code>python3 -m kb.crawl</code> to fetch public write-ups.</em></p>'
+    body_html = f"<pre>{e(body)}</pre>" if body else (
+        "<p><em>No write-up stored. Run <code>python3 -m kb.crawl</code> "
+        "to fetch public write-ups.</em></p>")
     return f"""<!doctype html>
 <html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>{e(r['title'])}</title>
+<title>{e(r['title'])} — CVE-logs</title>
+<link rel="preconnect" href="https://api.fontshare.com">
+<link href="https://api.fontshare.com/v2/css?f[]=clash-display@400,500,600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&family=Lora:ital,wght@0,400;0,500;1,400&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
-body{{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;max-width:820px;margin:2rem auto;padding:0 1rem;color:#111;line-height:1.55}}
-a{{color:#0b57d0}} pre{{background:#f6f6f6;padding:1rem;overflow:auto;white-space:pre-wrap}}
-.meta{{color:#555;font-size:.9rem}} .back{{margin-bottom:1rem;display:inline-block}}
+:root{{--ink:#eceae5;--muted:#a5a29a;--line:rgba(236,234,229,.22);--line-soft:rgba(236,234,229,.12);
+--display:"Clash Display","Inter",sans-serif;--serif:"Lora",Georgia,serif;
+--sans:"Inter",system-ui,sans-serif;--mono:"IBM Plex Mono",ui-monospace,monospace;
+--pad:clamp(20px,4vw,56px)}}
+*{{box-sizing:border-box;margin:0;padding:0}}
+body{{background:#0a0a0a;color:var(--ink);font-family:var(--sans);font-size:15px;
+line-height:1.6;-webkit-font-smoothing:antialiased;min-height:100vh}}
+a{{color:inherit;text-decoration:none}}
+header{{display:flex;justify-content:space-between;align-items:center;gap:16px;
+padding:18px var(--pad);font-size:11px;letter-spacing:.18em;text-transform:uppercase;
+border-bottom:1px solid var(--line-soft)}}
+header .brand{{font-family:var(--display);font-weight:500;font-size:15px;letter-spacing:.06em}}
+header a{{opacity:.8}} header a:hover{{opacity:1}}
+main{{max-width:900px;margin:0 auto;padding:clamp(28px,6vh,64px) var(--pad) clamp(40px,6vh,80px)}}
+.kicker{{font-family:var(--mono);font-size:10.5px;letter-spacing:.22em;text-transform:uppercase;
+color:var(--muted);margin-bottom:14px}}
+h1{{font-family:var(--display);font-weight:500;font-size:clamp(28px,4.5vw,52px);
+line-height:1.05;letter-spacing:.01em;margin-bottom:18px;text-wrap:balance}}
+.meta{{color:var(--muted);font-size:13px;margin:0 0 6px}}
+.meta a{{border-bottom:1px solid var(--line)}}
+.link{{display:inline-block;margin:18px 0 26px;font-family:var(--mono);font-size:11px;
+letter-spacing:.18em;text-transform:uppercase;border-bottom:1px solid var(--line);
+padding-bottom:6px}}
+pre{{background:rgba(236,234,229,.04);border:1px solid var(--line-soft);padding:clamp(14px,2.4vh,22px);
+overflow:auto;white-space:pre-wrap;font-family:var(--mono);font-size:13px;line-height:1.65}}
+code{{font-family:var(--mono);font-size:13px}}
+.back{{display:inline-block;margin-bottom:22px;font-family:var(--mono);font-size:10.5px;
+letter-spacing:.2em;text-transform:uppercase;opacity:.75}}
+.back:hover{{opacity:1}}
 </style></head><body>
+<header><a class="brand" href="/">CVE-logs</a><a href="/wiki/index.md">wiki</a></header>
+<main>
 <a class="back" href="/">&larr; search</a>
+<p class="kicker">Report #{r['id']} · {e(r.get('class_id') or '')}</p>
 <h1>{e(r['title'])}</h1>
 <p class="meta">{' · '.join(bits)}</p>
 <p class="meta">Bounty: {f"${r['bounty']:,.0f}" if r.get('bounty') else '-'} ·
-Votes: {r['votes']:,} · Report #{r['id']}</p>
-<p><a href="{e(r['link'])}">{e(r['link'])}</a></p>
+Votes: {r['votes']:,}</p>
+<a class="link" href="{e(r['link'])}">{e(r['link'])} ↗</a>
 {body_html}
-</body></html>"""
+</main></body></html>"""
 
 
 class Handler(BaseHTTPRequestHandler):
@@ -160,11 +193,22 @@ class Handler(BaseHTTPRequestHandler):
                 if not r:
                     return self._send(404, b"not found", "text/plain; charset=utf-8")
                 return self._send(200, _report_html(dict(r)), "text/html; charset=utf-8")
+            if path.startswith("/assets/"):
+                return self._asset(path[len("/assets/"):])
             if path.startswith("/wiki/"):
                 return self._wiki(path[len("/wiki/"):])
             return self._send(404, {"error": "not found"})
         except Exception as exc:  # keep the UI alive
             return self._send(500, {"error": str(exc)})
+
+    def _asset(self, rel: str) -> None:
+        target = (ASSETS / rel).resolve()
+        if not str(target).startswith(str(ASSETS.resolve())) or not target.is_file():
+            return self._send(404, {"error": "not found"})
+        types = {".webp": "image/webp", ".png": "image/png", ".jpg": "image/jpeg",
+                 ".svg": "image/svg+xml", ".ico": "image/x-icon"}
+        ctype = types.get(target.suffix.lower(), "application/octet-stream")
+        return self._send(200, target.read_bytes(), ctype)
 
     def _wiki(self, rel: str) -> None:
         target = (WIKI / rel).resolve()
