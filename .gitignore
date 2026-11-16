@@ -1,0 +1,14 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+
+# Generated artifacts (run `python3 -m kb.ingest` / `kb.wiki` to rebuild)
+data/
+wiki/
+
+# OS / editor
+.DS_Store
+*.swp

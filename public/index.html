@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>H1 disclosed reports KB</title>
+<style>
+  :root { color-scheme: light dark; }
+  * { box-sizing: border-box; }
+  body { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; max-width: 900px;
+         margin: 0 auto; padding: 1.5rem 1rem 4rem; line-height: 1.5; }
+  h1 { font-size: 1.25rem; margin: 0 0 .25rem; }
+  .sub { color: #666; font-size: .85rem; margin: .25rem 0 0; }
+  nav { margin: .5rem 0 0; font-size: .85rem; }
+  nav a { color: #0b57d0; }
+  form { display: flex; gap: .5rem; flex-wrap: wrap; margin: 1rem 0; align-items: center; }
+  input[type=search] { flex: 1 1 240px; padding: .6rem .7rem; font: inherit; }
+  input[type=text] { font: inherit; }
+  select, button { padding: .6rem .7rem; font: inherit; }
+  label { font-size: .85rem; color: #555; display: flex; align-items: center; gap: .35rem; }
+  #results { list-style: none; padding: 0; margin: 0; }
+  #results li { padding: .6rem 0; border-bottom: 1px solid #e2e2e2; }
+  #results a { color: #0b57d0; text-decoration: none; font-weight: 600; }
+  #results a:hover { text-decoration: underline; }
+  .meta { color: #666; font-size: .8rem; margin: .15rem 0 0; }
+</style>
+</head>
+<body>
+<h1>H1 disclosed reports</h1>
+<p class="sub" id="stats">loading…</p>
+<nav><a href="/wiki/index.md">wiki index</a> · <a href="/wiki/SCHEMA.md">schema</a> ·
+<a href="https://github.com/lukaslimals7/h1-kb">source</a></nav>
+
+<form id="search">
+  <input id="q" type="search" placeholder="search titles, programs, weaknesses…" autofocus>
+  <label>class <select id="class"><option value="">all</option></select></label>
+  <label>program <input id="program" type="text" placeholder="e.g. Shopify" style="width:9rem"></label>
+  <button type="submit">Search</button>
+</form>
+
+<p class="sub" id="count"></p>
+<ul id="results"></ul>
+
+<script>
+const $ = (id) => document.getElementById(id);
+
+async function getJSON(url) { const r = await fetch(url); return r.json(); }
+
+async function loadStats() {
+  const s = await getJSON('/api/stats');
+  $('stats').textContent = s.rows.toLocaleString() + ' reports · ' +
+    s.programs.toLocaleString() + ' programs · ' +
+    s.with_bounty.toLocaleString() + ' with bounty';
+  for (const c of s.classes) {
+    const o = document.createElement('option');
+    o.value = c.id;
+    o.textContent = c.id + ' (' + c.report_count.toLocaleString() + ')';
+    $('class').appendChild(o);
+  }
+}
+
+const money = (n) => n ? '$' + Math.round(n).toLocaleString('en-US') : '—';
+
+async function runSearch(e) {
+  if (e) e.preventDefault();
+  const p = new URLSearchParams({ q: $('q').value, class: $('class').value,
+                                  program: $('program').value, limit: 50 });
+  const s = await getJSON('/api/search?' + p);
+  $('count').textContent = s.total.toLocaleString() + ' match' + (s.total === 1 ? '' : 'es');
+  const ul = $('results');
+  ul.innerHTML = '';
+  for (const r of s.results) {
+    const li = document.createElement('li');
+    const a = document.createElement('a');
+    a.href = '/report/' + r.id;
+    a.textContent = r.title;
+    const meta = document.createElement('p');
+    meta.className = 'meta';
+    meta.textContent = [r.program, r.vuln_type, r.class_id, money(r.bounty),
+                        r.votes + ' votes', r.has_writeup ? 'write-up' : '']
+      .filter(Boolean).join(' · ');
+    li.append(a, meta);
+    ul.appendChild(li);
+  }
+}
+
+$('search').addEventListener('submit', runSearch);
+$('q').addEventListener('input', () => { if ($('q').value.length > 2) runSearch(); });
+loadStats().then(() => {
+  const p = new URLSearchParams(location.search);
+  if (p.get('program')) $('program').value = p.get('program');
+  if (p.get('q')) $('q').value = p.get('q');
+  runSearch();
+});
+</script>
+</body>
+</html>
