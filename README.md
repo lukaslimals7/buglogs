@@ -1,4 +1,4 @@
-# h1-kb
+# CVE-logs
 
 A searchable, markdown-first knowledge base of **publicly disclosed HackerOne
 bug-bounty reports** — for you, and for your AI agents.
@@ -84,5 +84,4 @@ rows = con.execute(
 ## Credits
 
 - [reddelexc/hackerone-reports](https://github.com/reddelexc/hackerone-reports) — the report list.
-- [HexBrain](https://github.com/hackerspider1/hexbrainai.com) — the class taxonomy this is ported from.
 - The report authors and the programs that disclosed them.
