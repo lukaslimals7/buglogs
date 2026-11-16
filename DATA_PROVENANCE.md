@@ -25,10 +25,10 @@ not mine and is not relicensed. Here is exactly where every piece comes from.
 
 ## Vulnerability taxonomy
 
-- The class regexes are ported from **HexBrain**
-  (<https://github.com/hackerspider1/hexbrainai.com>,
-  <https://hexbrainai.com>), an independent project **not affiliated with
-  HackerOne**. Class ids match that project so the two KBs can be compared.
+- The class mapping is **written for this project** from the public weakness
+  names themselves (the CWE titles and OWASP categories HackerOne uses).
+- It is **not** derived from, copied from, or credited to any other project.
+- The class ids (XSS, CSRF, SSRF, …) are short, conventional abbreviations.
 
 ## Code
 
