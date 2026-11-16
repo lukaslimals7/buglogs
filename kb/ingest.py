@@ -53,7 +53,7 @@ def _num(s: str | None, cast):
 def read_rows(path: Path):
     with path.open(newline="", encoding="utf-8") as f:
         for row in csv.DictReader(f):
-            m = re.search(r"(\d{4,})", row.get("link") or "")
+            m = re.search(r"(\d+)", row.get("link") or "")
             title = (row.get("title") or "").strip()
             if not m or not title:
                 continue
