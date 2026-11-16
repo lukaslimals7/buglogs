@@ -6,11 +6,20 @@
 <title>CVE-logs</title>
 <meta name="description" content="A searchable knowledge base of publicly disclosed HackerOne bug-bounty reports.">
 <style>
-  html{background:#fcefcf}
+  :root{
+    --bg:#fcefcf; --fg:#000; --link:#044c9f; --panel:#fff8e6;
+    --line:#000; --line-soft:#000; --input:#fff;
+  }
+  html[data-theme="dark"]{
+    --bg:#0a0a0a; --fg:#eceae5; --link:#8ab4f8; --panel:#111110;
+    --line:#eceae5; --line-soft:rgba(236,234,229,.22); --input:#0f0f0e;
+  }
+  html{background:var(--bg)}
   body{
     text-align:center;max-width:650px;margin:0 auto;padding:12px;
     font-family:Verdana,Geneva,"DejaVu Sans",sans-serif;
-    font-size:14px;color:#000;background:#fcefcf;
+    font-size:14px;color:var(--fg);background:var(--bg);
+    transition:background .2s,color .2s;
   }
   *{box-sizing:border-box}
   h1{margin:0;font-family:"Times New Roman",Times,serif;font-size:34px;font-weight:700}
@@ -18,49 +27,51 @@
   header>p{margin:.25em 0}
   nav,.playlists{
     display:inline-flex;flex-wrap:wrap;gap:12px;padding:16px 12px;
-    justify-content:center;border-bottom:1.5px solid #000;
+    justify-content:center;border-bottom:1.5px solid var(--line);
   }
-  nav{margin-bottom:14px}
+  nav{margin-bottom:14px;align-items:center}
   nav a,.playlists a{white-space:nowrap}
-  a{color:#044c9f}
-  a:hover{color:#000}
-  hr{border:0;border-top:1px solid #000;margin:14px 0}
-  table,th,td{border:1px solid #000;border-collapse:collapse;padding:4px}
-  .box{border:1px solid #000;padding:10px;margin:12px 0;text-align:left;background:#fff8e6}
+  a{color:var(--link)}
+  a:hover{color:var(--fg)}
+  hr{border:0;border-top:1px solid var(--line);margin:14px 0}
+  table,th,td{border:1px solid var(--line);border-collapse:collapse;padding:4px}
+  .box{border:1px solid var(--line);padding:10px;margin:12px 0;text-align:left;background:var(--panel)}
   .box p{margin:.3em 0}
-  .stats{display:flex;flex-wrap:wrap;gap:0;justify-content:center;border:1px solid #000;margin:12px 0}
-  .stats div{padding:8px 14px;border-right:1px solid #000}
+  .stats{display:flex;flex-wrap:wrap;gap:0;justify-content:center;border:1px solid var(--line);margin:12px 0}
+  .stats div{padding:8px 14px;border-right:1px solid var(--line)}
   .stats div:last-child{border-right:0}
   .stats b{display:block;font-size:20px;font-family:"Times New Roman",Times,serif}
   .stats span{font-size:11px}
   form{margin:14px 0}
   input[type=search]{
     width:100%;max-width:420px;padding:6px;font:inherit;font-size:14px;
-    border:1px solid #000;background:#fff;
+    border:1px solid var(--line);background:var(--input);color:var(--fg);
   }
   input[type=text],select{
-    padding:5px;font:inherit;font-size:13px;border:1px solid #000;background:#fff;
+    padding:5px;font:inherit;font-size:13px;border:1px solid var(--line);
+    background:var(--input);color:var(--fg);
   }
   button{
     padding:6px 14px;font:inherit;font-size:13px;cursor:pointer;
-    border:1px solid #000;background:#fff;
+    border:1px solid var(--line);background:var(--input);color:var(--fg);
   }
-  button:hover{background:#000;color:#fcefcf}
+  button:hover{background:var(--fg);color:var(--bg)}
   .count{font-size:12px;margin:8px 0;text-align:left}
-  ul.results{list-style:none;margin:0;padding:0;border-top:1px solid #000;text-align:left}
-  ul.results li{padding:8px 0;border-bottom:1px solid #000}
+  ul.results{list-style:none;margin:0;padding:0;border-top:1px solid var(--line);text-align:left}
+  ul.results li{padding:8px 0;border-bottom:1px solid var(--line-soft)}
   ul.results a{font-weight:700}
   ul.results .meta{font-size:12px}
-  .empty{padding:16px 0;border-bottom:1px solid #000;text-align:left}
+  .empty{padding:16px 0;border-bottom:1px solid var(--line-soft);text-align:left}
   .panel{display:none;text-align:left}
   .panel.open{display:block}
   .panel .close{margin-bottom:10px}
-  .panel ul{list-style:none;padding:0;margin:0;border-top:1px solid #000}
-  .panel li{padding:8px 0;border-bottom:1px solid #000}
+  .panel ul{list-style:none;padding:0;margin:0;border-top:1px solid var(--line)}
+  .panel li{padding:8px 0;border-bottom:1px solid var(--line-soft)}
   .panel li a{display:flex;justify-content:space-between;gap:12px}
   .panel li span:last-child{font-size:12px;white-space:nowrap}
   .foot{margin-top:22px;font-size:12px}
   .foot a{margin:0 6px}
+  .theme-toggle{font-size:11px;letter-spacing:.08em;text-transform:uppercase;padding:4px 10px;min-height:0}
 </style>
 </head>
 <body>
@@ -73,6 +84,7 @@
     <a href="#programs" data-panel="programs">Programs</a>
     <a href="#about" data-panel="about">About</a>
     <a href="/wiki/index.md">Wiki</a>
+    <button class="theme-toggle" id="theme-toggle" type="button" aria-label="Switch theme">Dark</button>
   </nav>
 </header>
 
@@ -134,6 +146,22 @@
 </p>
 
 <script>
+  // theme: saved choice, else the OS preference. Set before first paint.
+  (function(){
+    const saved = localStorage.getItem('cvelogs-theme');
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    const theme = saved || (prefersDark ? 'dark' : 'light');
+    document.documentElement.setAttribute('data-theme', theme);
+    const btn = document.getElementById('theme-toggle');
+    btn.textContent = theme === 'dark' ? 'Light' : 'Dark';
+    btn.addEventListener('click', () => {
+      const next = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+      document.documentElement.setAttribute('data-theme', next);
+      localStorage.setItem('cvelogs-theme', next);
+      btn.textContent = next === 'dark' ? 'Light' : 'Dark';
+    });
+  })();
+
   const $ = (id) => document.getElementById(id);
   const money = (n) => n ? '$' + Math.round(n).toLocaleString('en-US') : '—';
   const esc = (s) => (s == null ? '' : String(s));

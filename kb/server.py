@@ -94,21 +94,52 @@ def _report_html(r: dict) -> str:
 <html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{e(r['title'])} — CVE-logs</title>
+<script>
+  // theme before first paint: saved choice, else the OS preference
+  (function(){{
+    var saved = localStorage.getItem('cvelogs-theme');
+    var dark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    document.documentElement.setAttribute('data-theme', saved || (dark ? 'dark' : 'light'));
+  }})();
+</script>
 <style>
 html{{background:#fcefcf}}
+html[data-theme="dark"]{{background:#0a0a0a}}
 body{{text-align:center;max-width:650px;margin:0 auto;padding:12px;
 font-family:Verdana,Geneva,"DejaVu Sans",sans-serif;font-size:14px;color:#000;background:#fcefcf}}
+html[data-theme="dark"] body{{color:#eceae5;background:#0a0a0a}}
 h1{{font-family:"Times New Roman",Times,serif;font-size:26px;margin:14px 0 8px;text-align:left}}
 nav{{display:inline-flex;flex-wrap:wrap;gap:12px;padding:12px;justify-content:center;
 border-bottom:1.5px solid #000;margin-bottom:14px}}
+html[data-theme="dark"] nav{{border-bottom-color:#eceae5}}
 a{{color:#044c9f}} a:hover{{color:#000}}
+html[data-theme="dark"] a{{color:#8ab4f8}} html[data-theme="dark"] a:hover{{color:#eceae5}}
 .box{{border:1px solid #000;padding:10px;margin:12px 0;text-align:left;background:#fff8e6}}
+html[data-theme="dark"] .box{{border-color:#eceae5;background:#111110}}
 pre{{text-align:left;background:#fff;border:1px solid #000;padding:10px;overflow:auto;
 white-space:pre-wrap;font-size:13px}}
+html[data-theme="dark"] pre{{background:#0f0f0e;border-color:#eceae5;color:#eceae5}}
 .meta{{text-align:left;font-size:13px;margin:4px 0}}
+.theme-toggle{{font-size:11px;letter-spacing:.08em;text-transform:uppercase;padding:4px 10px}}
 .back{{display:inline-block;margin-bottom:12px}}
 </style></head><body>
-<nav><a href="/">Search</a><a href="/wiki/index.md">Wiki</a></nav>
+<nav><a href="/">Search</a><a href="/wiki/index.md">Wiki</a>
+<button class="theme-toggle" id="theme-toggle" type="button" aria-label="Switch theme">Dark</button></nav>
+<script>
+  (function(){{
+    var btn = document.getElementById('theme-toggle');
+    var sync = function() {{
+      btn.textContent = document.documentElement.getAttribute('data-theme') === 'dark' ? 'Light' : 'Dark';
+    }};
+    sync();
+    btn.addEventListener('click', function() {{
+      var next = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+      document.documentElement.setAttribute('data-theme', next);
+      localStorage.setItem('cvelogs-theme', next);
+      sync();
+    }});
+  }})();
+</script>
 <h1>{e(r['title'])}</h1>
 <p class="meta">Report #{r['id']} · {e(r.get('class_id') or '')}</p>
 <p class="meta">{' · '.join(bits)}</p>
