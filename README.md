@@ -1,4 +1,4 @@
-# CVE-logs
+# buglogs
 
 A searchable, markdown-first knowledge base of **publicly disclosed HackerOne
 bug-bounty reports** — for you, and for your AI agents.

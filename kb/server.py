@@ -93,7 +93,7 @@ def _report_html(r: dict) -> str:
     return f"""<!doctype html>
 <html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>{e(r['title'])} — CVE-logs</title>
+<title>{e(r['title'])} — buglogs</title>
 <script>
   // theme before first paint: saved choice, else the OS preference
   (function(){{
